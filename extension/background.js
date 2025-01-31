@@ -1,27 +1,31 @@
-(() => {
-  // Listen for messages from the webpage
-  window.addEventListener("message", (event) => {
-    if (event.source !== window) return;
-    
-    if (event.data.type === "FROM_NEXTJS") {
-      const { action, data } = event.data.payload;
-      
-      if (action === "OPEN_EXTENSION") {
-        // Forward the message to the background script
-        chrome.runtime.sendMessage({
-          type: "FROM_WEBPAGE",
-          payload: {
-            action: action,
-            data: data
-          }
-        });
-      }
-    }
-  });
+chrome.runtime.onInstalled.addListener(() => {
+  console.log("Extension installed");
+});
 
-  // Let the webpage know the extension is ready
-  window.postMessage({
-    type: "FROM_EXTENSION",
-    payload: "EXTENSION_READY"
-  }, "*");
-})();
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.type === "FROM_WEBPAGE" && request.payload.action === "OPEN_EXTENSION") {
+    // Get the current window
+    chrome.windows.getCurrent((window) => {
+      // Get the current tab in the window
+      chrome.tabs.query({ active: true, windowId: window.id }, (tabs) => {
+        const currentTab = tabs[0];
+        if (currentTab) {
+          // Calculate position for popup
+          const width = 400;  // popup width
+          const height = 600; // popup height
+          
+          // Create a popup window
+          chrome.windows.create({
+            url: 'popup.html',
+            type: 'popup',
+            width: width,
+            height: height,
+            left: Math.round(window.left + (window.width - width)),
+            top: Math.round(window.top),
+            focused: true
+          });
+        }
+      });
+    });
+  }
+});
