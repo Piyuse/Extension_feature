@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "companion extension",
     "version": "1.0",
-    "permissions": ["activeTab", "tabs"],
+    "permissions": ["activeTab", "tabs","scripting"],
     "content_scripts": [
       {
         "matches": ["http://*/*", "https://*/*"],
